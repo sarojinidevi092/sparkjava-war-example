@@ -1,0 +1,35 @@
+pipeline{
+    agent any
+    
+    environment{
+        PATH="/home/ubuntu/apache-maven-3.8.1/bin:$PATH"
+    }
+    stages{
+        stage("Git checkout"){
+            steps{
+                git credentialsId: '7f68e2fe-f18f-40af-a484-144b84125b80', url: 'https://github.com/ValaxyTech/sparkjava-war-example.git'
+            }
+        }
+        stage("Maven Build"){
+            steps{
+                sh "mvn clean package"
+                sh "mv target/*.war target/myweb.war"
+            }
+        }
+        stages("deploy-dev"){
+            steps{
+                sshagent({"tomcat-new"}) {
+                    sh ***
+                    scp -o StrictHostkeyChecking-no target/sparkjava-war-example ubuntu@10.0.1.229:/home/ubuntu/apache-tomcat-9.0.52/webapps/
+                    
+                    ssh ubuntu@10.0.1.229 /home/ubuntu/apache-tomcat-9.0.52/bin/shutdown.sh
+                    
+                    ssh ubuntu@10.0.1.229 /home/ubuntu/apache-tomcat-9.0.52/bin/startup.sh
+                    
+                    ***
+                }
+                
+            }
+        }
+    }    
+}               
